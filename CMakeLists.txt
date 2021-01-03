@@ -16,7 +16,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/)
 #set(Boost_USE_STATIC_RUNTIME     ON)
 set(Boost_USE_MULTITHREADED      ON)
 
-find_library(iconv REQUIRED)
+# This seems to be the same as find_package(Iconv) below. Add a condition check
+# since it doesn't work on Linux (Arch)
+if(NOT UNIX)
+  find_library(iconv REQUIRED)
+endif()
 
 # dependencies:
 
