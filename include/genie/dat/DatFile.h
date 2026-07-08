@@ -119,6 +119,7 @@ public:
 
   int16_t TerrainsUsed1;
 
+  // SWGB variables
   int32_t WaypointSprite;
   int32_t MoveToSprite;
   int32_t GarrisonSound;
