@@ -30,6 +30,21 @@
 namespace genie
 {
 
+namespace
+{
+
+// iconv() takes "char **" input on glibc and GNU libiconv (including vcpkg's
+// Windows build), but "const char **" on others such as win-iconv.
+template <typename In>
+size_t callIconv(size_t (*fn)(iconv_t, In **, size_t *, char **, size_t *),
+                 iconv_t cd, char **inbuf, size_t *inleft,
+                 char **outbuf, size_t *outleft)
+{
+  return fn(cd, const_cast<In **>(inbuf), inleft, outbuf, outleft);
+}
+
+}
+
 const char *LangFile::CONV_DEFAULT_CHARSET = "UTF-8";
 
 Logger& LangFile::log = Logger::getLogger("freeaoe.DrsFile");
@@ -324,11 +339,7 @@ std::string LangFile::convert(iconv_t cd, std::string input)
 {
   size_t inleft = input.size();
   char *inbuf = new char[inleft];
-  #ifdef _WIN32
-  const char *inptr = inbuf;
-  #else
   char *inptr = inbuf;
-  #endif
 
   char buf[CONV_BUF_SIZE];
   size_t outleft = CONV_BUF_SIZE, iconv_value = 0;
@@ -340,7 +351,7 @@ std::string LangFile::convert(iconv_t cd, std::string input)
 
   while (cd != (iconv_t)-1 && inleft > 0 && iconv_value == 0)
   {
-    iconv_value = iconv(cd, &inptr, &inleft, &outptr, &outleft);
+    iconv_value = callIconv(iconv, cd, &inptr, &inleft, &outptr, &outleft);
 
     if (iconv_value == (size_t)-1)
     {
